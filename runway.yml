@@ -40,7 +40,6 @@ build_steps:
     # the first major release, as breaking changes may be introduced to the SDK
     - pip install runway-python==0.0.74
     - pip install -r requirements.txt
-    # The if_gpu and if_cpu directives can be used to run build steps
-    # conditionally depending on the build environment.
-    - if_gpu: echo "Building in a GPU environment..."
-    - if_cpu: echo "Building in a CPU only environment..."
+    - python3 get_drive_file.py 0B7EVK8r0v71pZjFTYXZWM3FlRnM celebA.zip
+    - mkdir dataset
+    - unzip celebA.zip -d dataset
