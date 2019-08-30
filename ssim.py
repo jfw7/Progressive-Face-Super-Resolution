@@ -13,7 +13,7 @@ def create_window(window_size):
     _1D_window = gaussian(window_size, 1.5).unsqueeze(1)
     _2D_window = _1D_window.mm(_1D_window.t()).float().unsqueeze(0).unsqueeze(0)
     window = _2D_window.expand(1, 1, window_size, window_size).contiguous()
-    return window.cuda()
+    return window.cpu()
 
 
 def ssim(img1, img2, window_size=11, size_average=True, full=False, val_range=None):
