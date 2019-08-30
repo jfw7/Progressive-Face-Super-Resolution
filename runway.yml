@@ -22,9 +22,9 @@ framework: pytorch
 # instance if your model doesn't use CUDA or run on a GPU you can set
 # gpu: False.
 spec:
-    cpu: True
+    cpu: False
     gpu: True
-    
+
 files:
     # All files in the root project directory will be copied to the Docker image
     # automatically. Builds that require excessive storage can fail or take a
