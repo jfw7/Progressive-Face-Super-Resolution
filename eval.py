@@ -9,14 +9,10 @@ from torch.autograd import Variable, grad
 import sys
 from torchvision import utils
 from math import log10
-from ssim import ssim, msssim
 
 def test(dataloader, generator, MSE_Loss, step, alpha):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    avg_psnr = 0
-    avg_ssim = 0
-    avg_msssim = 0
     for i, (x2_target_image, x4_target_image, target_image, input_image) in enumerate(dataloader):
         if step==1:
             target_image = x2_target_image.to(device)
@@ -27,19 +23,7 @@ def test(dataloader, generator, MSE_Loss, step, alpha):
 
         input_image = input_image.to(device)
         predicted_image = generator(input_image, step, alpha)
-        mse_loss = MSE_Loss(0.5*predicted_image+0.5, 0.5*target_image+0.5)
-        psnr = 10*log10(1./mse_loss.item())
-        avg_psnr += psnr
-        _ssim = ssim(0.5*predicted_image+0.5, 0.5*target_image+0.5)
-        avg_ssim += _ssim.item()
-        ms_ssim = msssim(0.5*predicted_image+0.5, 0.5*target_image+0.5)
-        avg_msssim += ms_ssim.item()
-
-        # sys.stdout.write('\r [%d/%d] Test progress... PSNR: %6.4f'%(i, len(dataloader), psnr))
-
     return predicted_image
-        #
-        # utils.save_image(0.5*predicted_image+0.5, os.path.join(args.result_path, '%d_results.jpg'%i))
 
 
 if __name__ == '__main__':
