@@ -12,6 +12,8 @@ from math import log10
 from ssim import ssim, msssim
 
 def test(dataloader, generator, MSE_Loss, step, alpha):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     avg_psnr = 0
     avg_ssim = 0
     avg_msssim = 0
@@ -33,9 +35,11 @@ def test(dataloader, generator, MSE_Loss, step, alpha):
         ms_ssim = msssim(0.5*predicted_image+0.5, 0.5*target_image+0.5)
         avg_msssim += ms_ssim.item()
 
-        sys.stdout.write('\r [%d/%d] Test progress... PSNR: %6.4f'%(i, len(dataloader), psnr))
-        utils.save_image(0.5*predicted_image+0.5, os.path.join(args.result_path, '%d_results.jpg'%i))
-    print('Test done, Average PSNR:%6.4f, Average SSIM:%6.4f, Average MS-SSIM:%6.4f '%(avg_psnr/len(dataloader),avg_ssim/len(dataloader), avg_msssim/len(dataloader)))
+        # sys.stdout.write('\r [%d/%d] Test progress... PSNR: %6.4f'%(i, len(dataloader), psnr))
+
+    return predicted_image
+        #
+        # utils.save_image(0.5*predicted_image+0.5, os.path.join(args.result_path, '%d_results.jpg'%i))
 
 
 if __name__ == '__main__':

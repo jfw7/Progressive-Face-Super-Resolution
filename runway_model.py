@@ -3,6 +3,11 @@ import torch
 from model import Generator
 import torchvision.transforms as transforms
 from torch.autograd import Variable as Variable
+from dataloader import CelebDataSet
+from torch.utils.data import DataLoader
+from eval import test
+from torch import optim, nn
+from torchvision import utils
 
 options = {
     # "batch_size": runway.data_types.number(
@@ -24,42 +29,29 @@ options = {
 @runway.setup(options=options)
 def setup(opts):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     generator = Generator().to(device)
     g_checkpoint = torch.load(opts['checkpoint_path'], map_location=device)
     generator.load_state_dict(g_checkpoint['model_state_dict'], strict=False)
-    return generator
+    step = g_checkpoint['step']
+    alpha = g_checkpoint['alpha']
+    iteration = g_checkpoint['iteration']
 
-pre_process = transforms.Compose([
-    transforms.CenterCrop((178, 178)),
-    transforms.Resize((128, 128)),
-])
+    print('pre-trained model is loaded step:%d, iteration:%d'%(step, iteration))
+    MSE_Loss = nn.MSELoss()
 
-to_tensor = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-])
-
-_64x64_down_sampling = transforms.Resize((64, 64))
-_32x32_down_sampling = transforms.Resize((32, 32))
-_16x16_down_sampling = transforms.Resize((16,16))
-
-unloader = transforms.ToPILImage()  # reconvert into PIL image
-
+    return (generator, MSE_Loss, step, alpha)\
 
 @runway.command('upscale', inputs={'image': runway.data_types.image}, outputs={'upscaled': runway.data_types.image})
 def upscale(model, inputs):
-    target_image = pre_process(inputs['image'])
-    x4_target_image = _64x64_down_sampling(target_image)
-    x2_target_image = _32x32_down_sampling(x4_target_image)
-    input_image = _16x16_down_sampling(x2_target_image)
+    (generator, MSE_Loss, step, alpha) = model
 
-    input_image = Variable(to_tensor(input_image).unsqueeze(0))
+    dataset = CelebDataSet(image = inputs['image'], state='test')
+    dataloader = DataLoader(dataset=dataset, batch_size=16, shuffle=False, num_workers=4, pin_memory=True)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    input_image.to(device)
-    predicted_image = model(input_image, 3, 1)
-    upscaled = 0.5 * predicted_image.squeeze(0) + 0.5
-    return { 'upscaled': unloader(upscaled) }
+    image = test(dataloader, generator, MSE_Loss, step, alpha).squeeze(0)
+    image = (image - image.min()) / (image.max() - image.min())
+    return { 'upscaled': transforms.ToPILImage()(image) }
 
 
 if __name__ == '__main__':
