@@ -49,7 +49,7 @@ def upscale(model, inputs):
     dataset = CelebDataSet(image = inputs['image'], state='test')
     dataloader = DataLoader(dataset=dataset, batch_size=16, shuffle=False, num_workers=4, pin_memory=True)
 
-    image = test(dataloader, generator, MSE_Loss, step, alpha).squeeze(0).detach()
+    image = test(dataloader, generator, MSE_Loss, step, alpha).squeeze(0).cpu().detach().cpu()
     image = (image - image.min()) / (image.max() - image.min())
     return { 'upscaled': transforms.ToPILImage()(image) }
 
