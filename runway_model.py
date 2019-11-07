@@ -50,7 +50,7 @@ def upscale(model, inputs):
     dataloader = DataLoader(dataset=dataset, batch_size=16, shuffle=False, num_workers=4, pin_memory=True)
 
     image = test(dataloader, generator, MSE_Loss, step, alpha).squeeze(0)
-    image = (image - image.min()) / (image.max() - image.min())
+    image = (image - image.min()) / (image.max() - image.min()).detach()
     return { 'upscaled': transforms.ToPILImage()(image) }
 
 
