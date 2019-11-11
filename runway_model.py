@@ -42,16 +42,23 @@ def setup(opts):
 
     return (generator, MSE_Loss, step, alpha)\
 
-@runway.command('upscale', inputs={'image': runway.data_types.image}, outputs={'upscaled': runway.data_types.image})
+@runway.command('upscale', inputs={'image': runway.data_types.image, 'iterations': runway.data_types.number(default=1, min=1, max=4)}, outputs={'upscaled': runway.data_types.image})
 def upscale(model, inputs):
     (generator, MSE_Loss, step, alpha) = model
 
-    dataset = CelebDataSet(image = inputs['image'], state='test')
-    dataloader = DataLoader(dataset=dataset, batch_size=16, shuffle=False, num_workers=4, pin_memory=True)
+    image = inputs['image']
 
-    image = test(dataloader, generator, MSE_Loss, step, alpha).squeeze(0).cpu().detach().cpu()
-    image = (image - image.min()) / (image.max() - image.min())
-    return { 'upscaled': transforms.ToPILImage()(image) }
+    for i in range(0, inputs['iterations']):
+        dataset = CelebDataSet(image = image, state='test')
+        dataloader = DataLoader(dataset=dataset, batch_size=16, shuffle=False, num_workers=4, pin_memory=True)
+
+
+        image = test(dataloader, generator, MSE_Loss, step, alpha).squeeze(0).cpu().detach().cpu()
+        image = (image - image.min()) / (image.max() - image.min())
+        image = transforms.ToPILImage()(image)
+
+
+    return { 'upscaled': image }
 
 
 if __name__ == '__main__':
