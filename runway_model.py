@@ -15,7 +15,7 @@ options = {
     #     default=16,
     # ),
     "checkpoint_path": runway.data_types.text(
-        default='./checkpoints/generator_checkpoint.ckpt',
+        default='./checkpoints/unalign_trained_generator_checkpoint.ckpt',
     ),
     # "data_path": runway.data_types.text(
     #     default='./dataset/',
